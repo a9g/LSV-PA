@@ -1,0 +1,37 @@
+name: GitHub CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+
+      - name: Install APT dependencies
+        run: |
+          sudo apt install -y libreadline-dev
+
+      - name: Build Executable
+        run: |
+          make -j2 abc
+
+      - name: Test Executable
+        run: |
+          ./abc -c "r i10.aig; b; ps; b; rw -l; rw -lz; b; rw -lz; b; ps; cec"
+          ./abc -c "r i10.aig; clp; lsv_print_nodes"
+
+      - name: Stage Executable
+        run: |
+          mkdir staging
+          cp abc staging/
+
+      - name: Upload pacakge artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: staging/
